@@ -12,6 +12,9 @@ const testConnection = async() => {
 };
 testConnection();
 /*
+archivo.env
+
+#credenciales de supabase
 SUPABASE_URL=https://csjdosnlaluuybcnlzaf.supabase.co
 #llave secreta para permnisos de admin
 SUPABASE_SERVICE_ROLE=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzamRvc25sYWx1dXliY25semFmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODcyMDYyNSwiZXhwIjoyMDY0Mjk2NjI1fQ.7FgtujyR36kxB94JSjUZRi8r2_GPnCIJB-YXglURwsY
