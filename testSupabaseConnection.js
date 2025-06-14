@@ -1,16 +1,16 @@
-const supabase = require('./supabaseClient');
+const supabase = require('./supabaseClient')
 
-const testConnection = async() => {
-    const {data, error} = await supabase.auth.admin.listUsers();
+const testConnection = async () => {
+  const { data, error } = await supabase.auth.admin.listUsers()
 
-    if(error){
-        console.log("Error de conexion")
-    }else{
-        console.log("Conexion exitosa")
-    }
+  if (error) {
+    console.log('Error de conexion')
+  } else {
+    console.log('Conexion exitosa')
+  }
+}
+testConnection()
 
-};
-testConnection();
 /*
 archivo.env
 
