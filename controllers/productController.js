@@ -37,3 +37,19 @@ exports.insertProducts = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+exports.updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, imagen, descripcion, precio, categoria } = req.body;
+
+        const { data, error } = await supabaseAnonClient
+            .from("productos")
+            .update({ nombre, imagen, descripcion, precio, categoria })
+            .eq("id", id);
+        console.log("Datos actualizados" );
+        if (error) throw error;
+        res.status(200).json({ message: "Producto actualizado correctamente", data });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
