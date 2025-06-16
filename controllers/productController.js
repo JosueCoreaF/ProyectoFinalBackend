@@ -19,7 +19,7 @@ exports.getAllProducts = async (req, res) => {
 };
 exports.insertProducts = async (req, res) => {
     console.log("Body recibido:", req.body);
-    const { nombre, imagen, descripcion, precio, categoria } = req.body;
+    const { nombre, imagen, descripcion, precio, categoria, esOferta, precioOriginal } = req.body;
     if (!nombre || !imagen || !descripcion || !precio || !categoria) {
         console.log("Faltan campos obligatorios");
         return res.status(400).json({ error: 'Faltan campos obligatorios' });
@@ -28,7 +28,7 @@ exports.insertProducts = async (req, res) => {
         console.log("Intentando insertar en Supabase...");
         const { data, error } = await supabaseAnonClient
             .from("productos")
-            .insert([{ nombre, imagen, descripcion, precio, categoria }]);
+            .insert([{ nombre, imagen, descripcion, precio, categoria, esOferta, precioOriginal }]);
         console.log("Resultado de Supabase:", { data, error });
         if (error) throw error;
         res.status(201).json({ message: "Producto insertado correctamente", data });
@@ -40,11 +40,11 @@ exports.insertProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, imagen, descripcion, precio, categoria } = req.body;
+        const { nombre, imagen, descripcion, precio, categoria, esOferta, precioOriginal } = req.body;
 
         const { data, error } = await supabaseAnonClient
             .from("productos")
-            .update({ nombre, imagen, descripcion, precio, categoria })
+            .update({ nombre, imagen, descripcion, precio, categoria, esOferta, precioOriginal })
             .eq("id", id);
         console.log("Datos actualizados" );
         if (error) throw error;
