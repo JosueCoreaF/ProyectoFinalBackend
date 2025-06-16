@@ -53,3 +53,17 @@ exports.updateProduct = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 };
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabaseAnonClient
+      .from("productos")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+    res.status(204).send();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
