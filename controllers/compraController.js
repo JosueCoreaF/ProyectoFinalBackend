@@ -21,27 +21,41 @@ exports.getComprasByUser = async (req, res) => {
     }
 };
 
-// Obtener todas las ventas (para admin) con JOIN a profiles para nombre y email
+// Obtener todas las ventas (para admin) solo con los campos de la tabla Ventas
 exports.getAllVentas = async (req, res) => {
     try {
         const { data, error } = await supabaseAnonClient
             .from("Ventas")
-            .select(`
-                id,
-                user_id,
-                producto_nombre,
-                producto_id,
-                fecha,
-                cantidad,
-                precio,
-                profiles (
-                    nombre_usuario,
-                    email
-                )
-            `)
+            .select("*")
             .order("fecha", { ascending: false });
         if (error) throw error;
         res.status(200).json({ data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Registrar una nueva venta
+exports.insertVenta = async (req, res) => {
+    try {
+        const { user_id, producto_nombre, producto_id, cantidad, precio } = req.body;
+        if (!user_id || !producto_nombre || !producto_id || !cantidad || !precio) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+        const { data, error } = await supabaseAnonClient
+            .from("Ventas")
+            .insert([
+                {
+                    user_id,
+                    producto_nombre,
+                    producto_id,
+                    cantidad,
+                    precio,
+                    fecha: new Date().toISOString()
+                }
+            ]);
+        if (error) throw error;
+        res.status(201).json({ message: "Venta registrada", data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
