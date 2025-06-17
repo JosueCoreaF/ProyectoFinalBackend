@@ -67,3 +67,19 @@ exports.deleteProduct = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+exports.getOfertas = async (req, res) => {
+    try {
+        const { data, error } = await supabaseAnonClient
+            .from("productos")
+            .select("*")
+            .eq("esoferta", true);
+        if (error) {
+            console.error('Supabase error en getOfertas:', error);
+            throw error;
+        }
+        res.status(200).json({ data });
+    } catch (err) {
+        console.error('Error en endpoint /ofertas:', err);
+        res.status(err.status || 500).json({ error: err.message });
+    }
+};
