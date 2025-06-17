@@ -35,10 +35,10 @@ exports.getAllVentas = async (req, res) => {
     }
 };
 
-// Registrar una nueva venta
+// Registrar una nueva venta (ahora guarda nombre_usuario y correo)
 exports.insertVenta = async (req, res) => {
     try {
-        const { user_id, producto_nombre, producto_id, cantidad, precio } = req.body;
+        const { user_id, producto_nombre, producto_id, cantidad, precio, nombre_usuario, correo } = req.body;
         if (!user_id || !producto_nombre || !producto_id || !cantidad || !precio) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
@@ -51,7 +51,9 @@ exports.insertVenta = async (req, res) => {
                     producto_id,
                     cantidad,
                     precio,
-                    fecha: new Date().toISOString()
+                    fecha: new Date().toISOString(),
+                    nombre_usuario: nombre_usuario || null,
+                    correo: correo || null
                 }
             ]);
         if (error) throw error;
