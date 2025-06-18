@@ -38,7 +38,7 @@ exports.getAllVentas = async (req, res) => {
 // Registrar una nueva venta (ahora guarda nombre_usuario y correo)
 exports.insertVenta = async (req, res) => {
     try {
-        const { user_id, producto_nombre, producto_id, cantidad, precio, nombre_usuario, correo } = req.body;
+        const { user_id, producto_nombre, producto_id, cantidad, precio, nombre_usuario, correo, moneda } = req.body;
         if (!user_id || !producto_nombre || !producto_id || !cantidad || !precio) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
@@ -53,11 +53,46 @@ exports.insertVenta = async (req, res) => {
                     precio,
                     fecha: new Date().toISOString(),
                     nombre_usuario: nombre_usuario || null,
-                    correo: correo || null
+                    correo: correo || null,
+                    moneda: moneda || null
                 }
             ]);
         if (error) throw error;
+        // Disminuir stock de productos después de registrar la venta
+        for (const item of req.body.productos || []) {
+            const { error: updateError } = await supabaseAnonClient
+                .from("productos")
+                .update({ stock: item.nuevoStock })
+                .eq("id", item.producto_id);
+            if (updateError) {
+                // Si falla la actualización de stock, puedes manejarlo aquí
+                console.error('Error actualizando stock:', updateError.message);
+            }
+        }
         res.status(201).json({ message: "Venta registrada", data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Nuevo endpoint para actualizar el stock de varios productos
+exports.updateStock = async (req, res) => {
+    try {
+        const { productos } = req.body; // [{ producto_id, nuevoStock }]
+        if (!Array.isArray(productos) || productos.length === 0) {
+            return res.status(400).json({ error: 'Se requiere un array de productos' });
+        }
+        for (const item of productos) {
+            if (!item.producto_id || typeof item.nuevoStock !== 'number') continue;
+            const { error } = await supabaseAnonClient
+                .from('productos')
+                .update({ stock: item.nuevoStock })
+                .eq('id', item.producto_id);
+            if (error) {
+                console.error('Error actualizando stock:', error.message);
+            }
+        }
+        res.status(200).json({ message: 'Stock actualizado' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

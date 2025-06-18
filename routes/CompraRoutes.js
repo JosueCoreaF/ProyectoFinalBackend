@@ -1,5 +1,5 @@
 const express = require('express');
-const { getComprasByUser, getAllVentas, insertVenta } = require('../controllers/compraController');
+const { getComprasByUser, getAllVentas, insertVenta, updateStock } = require('../controllers/compraController');
 const router = express.Router();
 
 // Ruta para obtener compras por usuario
@@ -8,5 +8,7 @@ router.get('/usuario/:userId', getComprasByUser);
 router.get('/ventas', getAllVentas);
 // Ruta para registrar una nueva venta
 router.post('/nueva', insertVenta);
+// Ruta para actualizar el stock de varios productos
+router.post('/updateStock', updateStock);
 
 module.exports = router;
