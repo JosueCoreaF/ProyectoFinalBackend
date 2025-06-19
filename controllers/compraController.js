@@ -97,3 +97,70 @@ exports.updateStock = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Aprobar venta (solo cambia el estado)
+exports.aprobarVenta = async (req, res) => {
+    const { ventaId } = req.params;
+    try {
+        const { error } = await supabaseAnonClient
+            .from('Ventas')
+            .update({ estado: 'Aprobado' })
+            .eq('id', ventaId);
+        if (error) throw error;
+        res.status(200).json({ message: 'Venta aprobada' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Rechazar venta (cambia estado y devuelve stock)
+exports.rechazarVenta = async (req, res) => {
+    const { ventaId } = req.params;
+    try {
+        // Obtener la venta
+        const { data: venta, error: ventaError } = await supabaseAnonClient
+            .from('Ventas')
+            .select('*')
+            .eq('id', ventaId)
+            .single();
+        if (ventaError || !venta) throw ventaError || new Error('Venta no encontrada');
+        // Devolver stock
+        const { data: producto, error: prodError } = await supabaseAnonClient
+            .from('productos')
+            .select('stock')
+            .eq('id', venta.producto_id)
+            .single();
+        if (prodError || !producto) throw prodError || new Error('Producto no encontrado');
+        const nuevoStock = (producto.stock || 0) + (venta.cantidad || 0);
+        const { error: updateError } = await supabaseAnonClient
+            .from('productos')
+            .update({ stock: nuevoStock })
+            .eq('id', venta.producto_id);
+        if (updateError) throw updateError;
+        // Cambiar estado de la venta
+        const { error: estadoError } = await supabaseAnonClient
+            .from('Ventas')
+            .update({ estado: 'Rechazado' })
+            .eq('id', ventaId);
+        if (estadoError) throw estadoError;
+        res.status(200).json({ message: 'Venta rechazada y stock devuelto' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Obtener pedidos por usuario (desde la tabla pedidos)
+exports.getPedidosByUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const { data, error } = await supabaseAnonClient
+            .from("pedidos")
+            .select("*")
+            .eq("user_id", userId)
+            .order("fecha", { ascending: false });
+        if (error) throw error;
+        res.status(200).json({ data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

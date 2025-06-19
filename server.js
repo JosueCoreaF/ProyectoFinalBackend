@@ -10,6 +10,7 @@ app.use(express.json())
 app.use('/api/auth', require('./routes/authRoutes'))
 app.use('/api/products', require('./routes/ProductRoutes'))
 app.use('/api/compras', require('./routes/CompraRoutes'));
+app.use('/api/pedidos', require('./routes/PedidoRoutes'));
 
 const PORT = process.env.PORT || 3301
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`))
