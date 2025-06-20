@@ -5,30 +5,35 @@ const supabaseAnonClient = createClient(
     process.env.SUPABASE_ANON_KEY
 );
 
-// Crear un nuevo pedido
+// Crear un nuevo pedido (ahora acepta array o solo objeto)
 exports.insertPedido = async (req, res) => {
     try {
-        const { user_id, producto_id, producto_nombre, cantidad, precio, moneda, nombre_usuario, correo } = req.body;
-        if (!user_id || !producto_id || !producto_nombre || !cantidad || !precio) {
-            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        let pedidos = Array.isArray(req.body) ? req.body : [req.body];
+        // Validar que todos los pedidos tengan los campos obligatorios
+        for (const pedido of pedidos) {
+            const { user_id, producto_id, producto_nombre, cantidad, precio } = pedido;
+            if (!user_id || !producto_id || !producto_nombre || !cantidad || !precio) {
+                return res.status(400).json({ error: 'Faltan campos obligatorios en uno o más pedidos' });
+            }
         }
+        // Preparar los pedidos para insertar
+        const pedidosAInsertar = pedidos.map(p => ({
+            user_id: p.user_id,
+            producto_id: p.producto_id,
+            producto_nombre: p.producto_nombre,
+            cantidad: p.cantidad,
+            precio: p.precio,
+            moneda: p.moneda,
+            nombre_usuario: p.nombre_usuario || null,
+            correo: p.correo || null,
+            estado: 'pendiente',
+            numero_pedido: p.numero_pedido || null
+        }));
         const { data, error } = await supabaseAnonClient
             .from("pedidos")
-            .insert([
-                {
-                    user_id,
-                    producto_id,
-                    producto_nombre,
-                    cantidad,
-                    precio,
-                    moneda,
-                    nombre_usuario: nombre_usuario || null,
-                    correo: correo || null,
-                    estado: 'pendiente'
-                }
-            ]);
+            .insert(pedidosAInsertar);
         if (error) throw error;
-        res.status(201).json({ message: "Pedido registrado", data });
+        res.status(201).json({ message: `Pedidos registrados: ${pedidosAInsertar.length}` , data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -67,6 +72,8 @@ exports.getAllPedidos = async (req, res) => {
 // Aprobar pedido: crea venta y descuenta stock
 exports.aprobarPedido = async (req, res) => {
     const { pedidoId } = req.params;
+    // Obtener el nombre del admin desde el request (por ejemplo, req.user o req.body.admin)
+    const admin = req.body && req.body.admin ? req.body.admin : 'admin';
     try {
         // Obtener el pedido
         const { data: pedido, error: pedidoError } = await supabaseAnonClient
@@ -102,14 +109,15 @@ exports.aprobarPedido = async (req, res) => {
                     moneda: pedido.moneda,
                     fecha: new Date().toISOString(),
                     nombre_usuario: pedido.nombre_usuario,
-                    correo: pedido.correo
+                    correo: pedido.correo,
+                    numero_pedido: pedido.numero_pedido || null
                 }
             ]);
         if (ventaError) throw ventaError;
-        // Cambiar estado del pedido
+        // Cambiar estado del pedido y guardar el admin
         const { error: estadoError } = await supabaseAnonClient
             .from('pedidos')
-            .update({ estado: 'aprobado' })
+            .update({ estado: 'aprobado', comentario_admin: admin })
             .eq('id', pedidoId);
         if (estadoError) throw estadoError;
         res.status(200).json({ message: 'Pedido aprobado y venta registrada' });
@@ -121,10 +129,11 @@ exports.aprobarPedido = async (req, res) => {
 // Rechazar pedido
 exports.rechazarPedido = async (req, res) => {
     const { pedidoId } = req.params;
+    const admin = req.body && req.body.admin ? req.body.admin : 'admin';
     try {
         const { error } = await supabaseAnonClient
             .from('pedidos')
-            .update({ estado: 'rechazado' })
+            .update({ estado: 'rechazado', comentario_admin: admin })
             .eq('id', pedidoId);
         if (error) throw error;
         res.status(200).json({ message: 'Pedido rechazado' });
