@@ -1,5 +1,5 @@
 const express = require('express');
-const { getComprasByUser, getAllVentas, insertVenta, updateStock, aprobarVenta, rechazarVenta, getPedidosByUser } = require('../controllers/compraController');
+const { getComprasByUser, getAllVentas, insertVenta, updateStock, aprobarVenta, rechazarVenta, getPedidosByUser} = require('../controllers/compraController');
 const router = express.Router();
 
 // Ruta para obtener compras por usuario
@@ -16,5 +16,6 @@ router.patch('/ventas/:ventaId/aprobar', aprobarVenta);
 router.patch('/ventas/:ventaId/rechazar', rechazarVenta);
 // Ruta para obtener pedidos por usuario
 router.get('/pedidos/usuario/:userId', getPedidosByUser);
+
 
 module.exports = router;
