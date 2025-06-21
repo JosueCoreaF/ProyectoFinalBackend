@@ -27,7 +27,8 @@ exports.insertPedido = async (req, res) => {
             nombre_usuario: p.nombre_usuario || null,
             correo: p.correo || null,
             estado: 'pendiente',
-            numero_pedido: p.numero_pedido || null
+            numero_pedido: p.numero_pedido || null,
+            total_pagar: p.total_pagar !== undefined ? p.total_pagar : null // <-- Agregado para guardar el total
         }));
         const { data, error } = await supabaseAnonClient
             .from("pedidos")
@@ -110,14 +111,15 @@ exports.aprobarPedido = async (req, res) => {
                     fecha: new Date().toISOString(),
                     nombre_usuario: pedido.nombre_usuario,
                     correo: pedido.correo,
-                    numero_pedido: pedido.numero_pedido || null
+                    numero_pedido: pedido.numero_pedido || null,
+                    total_pagar: pedido.total_pagar || null
                 }
             ]);
         if (ventaError) throw ventaError;
         // Cambiar estado del pedido y guardar el admin
         const { error: estadoError } = await supabaseAnonClient
             .from('pedidos')
-            .update({ estado: 'aprobado', comentario_admin: admin })
+            .update({ estado: 'aprobado', comentario_admin: `Aprobado por (${admin})` })
             .eq('id', pedidoId);
         if (estadoError) throw estadoError;
         res.status(200).json({ message: 'Pedido aprobado y venta registrada' });
@@ -133,7 +135,7 @@ exports.rechazarPedido = async (req, res) => {
     try {
         const { error } = await supabaseAnonClient
             .from('pedidos')
-            .update({ estado: 'rechazado', comentario_admin: admin })
+            .update({ estado: 'rechazado', comentario_admin: `Reprobado por (${admin})` })
             .eq('id', pedidoId);
         if (error) throw error;
         res.status(200).json({ message: 'Pedido rechazado' });
